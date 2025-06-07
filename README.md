@@ -1,4 +1,4 @@
-# Random-Wallpaper
+# Random-Wallpaper-Generator
 Just something cool :D
 
 ## Funny prompts
