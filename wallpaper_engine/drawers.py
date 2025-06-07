@@ -1,4 +1,5 @@
 import random
+import numpy as np
 from PIL import ImageDraw
 from scipy.spatial import Delaunay, Voronoi
 from .colors import random_color
@@ -74,3 +75,33 @@ def draw_random(draw: ImageDraw.Draw, pts, width, height, **_):
     k = random.randint(2, len(all_funcs))
     for fn in random.sample(all_funcs, k):
         fn(draw, pts, width=width, height=height)
+
+
+def draw_morph(draw: ImageDraw.Draw, pts, width, height, **_):
+    """Morph shapes along Delaunay edges: circles transitioning into squares."""
+    tri = Delaunay(pts)
+    edges = set()
+    for simp in tri.simplices:
+        for i in range(3):
+            a, b = simp[i], simp[(i+1) % 3]
+            edges.add(tuple(sorted((a, b))))
+
+    # sample edges for clarity
+    sample_count = min(len(edges), len(pts) // 2)
+    for a, b in random.sample(list(edges), k=sample_count):
+        p0, p1 = pts[a], pts[b]
+        steps = 6
+        for t in np.linspace(0, 1, steps):
+            # interpolate position
+            x = (1 - t) * p0[0] + t * p1[0]
+            y = (1 - t) * p0[1] + t * p1[1]
+            color = random_color()
+            if t < 0.5:
+                # fading circle
+                r = (1 - t) * 30
+                bbox = (x - r, y - r, x + r, y + r)
+                draw.ellipse(bbox, fill=color)
+            else:
+                # growing square
+                s = (t * 30)
+                draw.rectangle((x - s, y - s, x + s, y + s), fill=color)
